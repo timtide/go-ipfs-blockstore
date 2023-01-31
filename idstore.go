@@ -104,6 +104,10 @@ func (b *idstore) Get(ctx context.Context, k cid.Cid) (blocks.Block, error) {
 			return nil, ipld.ErrNotFound{}
 		}
 		logger.Debugf("got block from titan, cid[%s]", k.String())
+		err = b.bs.Put(ctx, block)
+		if err != nil {
+			logger.Warn("put to localhost fail : ", err.Error())
+		}
 		return block, nil
 	}
 	logger.Debugf("got block from localhost, cid[%s]", k.String())
