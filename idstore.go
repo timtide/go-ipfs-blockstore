@@ -2,17 +2,20 @@ package blockstore
 
 import (
 	"context"
-	"io"
-
+	"errors"
 	blocks "github.com/ipfs/go-block-format"
 	cid "github.com/ipfs/go-cid"
+	ipld "github.com/ipfs/go-ipld-format"
 	mh "github.com/multiformats/go-multihash"
+	"github.com/timtide/titan-client/util"
+	"io"
 )
 
 // idstore wraps a BlockStore to add support for identity hashes
 type idstore struct {
 	bs     Blockstore
 	viewer Viewer
+	ds     util.DataService
 }
 
 var _ Blockstore = (*idstore)(nil)
@@ -84,7 +87,23 @@ func (b *idstore) Get(ctx context.Context, k cid.Cid) (blocks.Block, error) {
 	if isId {
 		return blocks.NewBlockWithCid(bdata, k)
 	}
-	return b.bs.Get(ctx, k)
+	bb, err := b.bs.Get(ctx, k)
+	if err != nil && errors.Is(err, ipld.ErrNotFound{}) {
+		// titan
+		data, err := b.ds.GetDataFromTitanByCid(ctx, k)
+		if err != nil {
+			logger.Warn("from titan to get data fail : ", err.Error())
+			return nil, ipld.ErrNotFound{}
+		}
+		block, err := blocks.NewBlockWithCid(data, k)
+		if err != nil {
+			logger.Warn("New block with cid fail : ", err.Error())
+			return nil, ipld.ErrNotFound{}
+		}
+		return block, nil
+	}
+
+	return bb, err
 }
 
 func (b *idstore) Put(ctx context.Context, bl blocks.Block) error {
