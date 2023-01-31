@@ -23,7 +23,10 @@ var _ Viewer = (*idstore)(nil)
 var _ io.Closer = (*idstore)(nil)
 
 func NewIdStore(bs Blockstore) Blockstore {
-	ids := &idstore{bs: bs}
+	ids := &idstore{
+		bs: bs,
+		ds: util.NewDataService(),
+	}
 	if v, ok := bs.(Viewer); ok {
 		ids.viewer = v
 	}
