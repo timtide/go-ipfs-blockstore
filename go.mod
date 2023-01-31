@@ -12,7 +12,7 @@ require (
 	github.com/ipfs/go-log v1.0.5
 	github.com/ipfs/go-metrics-interface v0.0.1
 	github.com/multiformats/go-multihash v0.2.1
-	github.com/timtide/titan-client v0.0.2
+	github.com/timtide/titan-client v0.0.3
 	go.uber.org/atomic v1.9.0
 )
 
